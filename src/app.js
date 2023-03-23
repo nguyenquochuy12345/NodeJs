@@ -1,6 +1,10 @@
 import express from "express";
 import routerProduct from "./routes/product.js";
 import dotenv from "dotenv";
+// import connect from "./config/db/index.js";
+
+
+// await connect();
 dotenv.config();
 
 const app = express();
@@ -9,9 +13,16 @@ app.use(express.json());
 
 app.use("/api", routerProduct);
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port: ${process.env.PORT}`);
-});
+
+
+export const viteNodeApp = app;
+
+
+// app.listen(process.env.PORT, () => {
+//   console.log(`Server is running on port: ${process.env.PORT}`);
+// });
+
+
 
 /**
  * Step 1: install json-server
