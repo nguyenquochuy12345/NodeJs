@@ -1,17 +1,18 @@
 import express from "express";
 import {
-
-  create
-
-  
+  getAll,
+  getDetail,
+  remove,
+  add,
+  update
 } from "../controllers/product.js";
 const router = express.Router();
 
-// router.put("/product/:id", update);
-// router.delete("/product/:id", remove);
-// router.get("/products", getAll);
-// router.get("/product/:id", getDetail);
-router.post("/product", create);
+router.get("/products", getAll);
+router.get("/product/:id", getDetail);
+router.patch("/product/:id", update);
+router.post("/product", add);
+router.delete("/product/:id", remove);
 
 export default router;
 

@@ -1,7 +1,9 @@
 import express from "express";
 import routerProduct from "./routes/product.js";
+import routerUser from "./routes/user.js";
+
 import dotenv from "dotenv";
-// import connect from "./config/db/index.js";
+import connect  from "./config/db/index.js";
 
 
 // await connect();
@@ -12,7 +14,10 @@ const app = express();
 app.use(express.json());
 
 app.use("/api", routerProduct);
+app.use("/api", routerUser);
 
+
+connect();
 
 
 export const viteNodeApp = app;

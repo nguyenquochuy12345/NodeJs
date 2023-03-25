@@ -1,94 +1,118 @@
-import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
 import Joi from "joi";
+import Product from "../model/M_product.js";
 
 
 const productsSchema  = Joi.object({
   name: Joi.string().required().min(6),
   price: Joi.number().required(),
-  description: Joi.string(),
 }) 
 
 
-// export const getAll = async (req, res) => {
-//   try {
-//     const { data: products } = await axios.get(
-//       `${process.env.API_URI}`
-      
-//     );
-    
-//     if (products.length === 0) {
-//       res.send({
-//         messenger: "Danh sách sản phẩm trống!",
-//       });
-//     }
-//     return res.status(200).json(products);
-//   } catch (error) {
-//     res.status(500).send({
-//       messenger: error,
-//     });
-//   }
-// };
+export const getAll = async (req, res) => {
+    try {
+      const products = await Product.find()
+      if(!products){
+        return res.status(404).json({
+          message: "Khong co san pham nao"
+        })
+      }
+      return res.json({
+        products: products
+      })
+    } catch (error) {
+      return res.status(404).json({
+        message: error
+      })
+    }
+}
 
-// export const getDetail = async (req, res) => {
-//   try {
-//     const { data: product } = await axios.get(
-//       `${process.env.API_URI}/${req.params.id}`
-//     );
-//     if (!product) {
-//       res.send({
-//         messenger: "Sản phẩm không tồn tại",
-//       });
-//     }
-//     return res.status(200).json(product);
-//   } catch (error) {
-//     res.status(500).send({
-//       messenger: error,
-//     });
-//   }
-// };
-
-export const create = async (req, res) => {
+export const getDetail = async (req, res) => {
   try {
-    const { value } =  productsSchema.validate(req.body);
-    console.log(value);
-    return res.status(200).json(res.body);
+    const product = await Product.find({_id: req.params.id})
+    if(!product){
+      return res.status(404).json({
+        message: "Khong co san pham nao"
+      })
+    }
+    return res.json({
+      product: product
+    })
   } catch (error) {
-    res.status(500).send({
-      messenger: error,
-    });
+    return res.status(404).json({
+      message: error
+    })
   }
-};
 
-// export const update = async (req, res) => {
-//   try {
-//     const { data: product } = await axios.put(
-//       `${process.env.API_URI}/${req.params.id}`,
-//       req.body
-//     );
-//     if (!product) {
-//       res.send({
-//         messenger: "Cập nhật sản phẩm thất bại",
-//       });
-//     }
-//     return res.status(200).json(product);
-//   } catch (error) {
-//     res.status(500).send({
-//       messenger: error,
-//     });
-//   }
-// };
 
-// export const remove = async (req, res) => {
-//   try {
-//     await axios.delete(`${process.env.API_URI}/${req.params.id}`);
-//     return res.send({
-//       messenger: "Xoá sản phẩm thành công!",
-//     });
-//   } catch (error) {
-//     res.send({
-//       messenger: error,
-//     });
-//   }
-// };
+}
+export const add = async (req, res) => {
+        try {
+          const  {error} = productsSchema.validate(req.body)
+          if(error){
+          return res.status(404).json({
+              tinnhan: error.details[0].message
+          })
+          }
+          const product = await Product.create(req.body)
+          if(!product){
+              return res.json({
+                  message: "Không thêm sản phẩm"
+              })
+          }
+          return res.json({
+              message: "Thêm sản phẩm thành công",
+              data: product
+          })  
+      } catch (error) {
+          return res.status(404).json({
+              message: error
+          })
+      }
+
+  }
+
+export const remove = async (req, res) => {
+  try {
+    const {error} = productsSchema.validate(req.body)
+    if(error) {
+      return res.status(404).json({
+        message: error.details[0].message
+      })
+    }
+    const product = await Product.findByIdAndDelete(req.params.id)
+    if(!product){
+      return res.json({
+        message: "Khong tim thay san pham"
+      })
+    }
+    return res.json({
+      message: "Xoa san pham thanh cong"
+    })
+    
+  } catch (error) {
+    return res.status(404).json({
+      message: error
+    })
+  }
+
+}
+export const update = async (req, res) => {
+  try {
+       
+    const product = await Product.findByIdAndUpdate(req.params.id,req.body)
+    if(!product){
+        return res.json({
+            message: "Không tìm thấy sản phẩm"
+        })
+    }
+    return res.json({
+        message: "Sửa sản phẩm thành công",
+    })
+} catch (error) {
+    return res.status(404).json({
+        message: error
+    })
+}
+}
