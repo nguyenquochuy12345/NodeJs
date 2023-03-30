@@ -1,6 +1,9 @@
 import Joi from "joi";
 import user from "../model/M_user";
 import bcryptjs from "bcryptjs";
+import { signinSchema } from "../schemas/user";
+import jwt from "jsonwebtoken";
+
 const userSchema = Joi.object({
     name: Joi.string(),
     email: Joi.string().email().required().messages({
@@ -15,7 +18,7 @@ const userSchema = Joi.object({
       "any.min": `"password" phải chứa ít nhất {#limit} ký tự`,
       "any.required": `"password" là trường bắt buộc`,
   }),
-  rePassword: Joi.string().valid(Joi.ref("password")).required().messages({
+    rePassword: Joi.string().valid(Joi.ref("password")).required().messages({
       "any.base": `"rePassword" phải là kiểu "text"`,
       "any.empty": `"rePassword" không được bỏ trống`,
       "any.only": `"rePassword" phải giống "password"`,
@@ -62,3 +65,50 @@ export const signup = async (req, res) => {
         })
     }
 };
+
+
+export const signin = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+  
+      const { error } = signinSchema.validate(
+        { email, password },
+        { abortEarly: false }
+      );
+  
+      if (error) {
+        const errors = error.details.map((err) => err.message);
+        return res.status(400).json({
+          message: errors,
+        });
+      }
+  
+      const auth = await user.findOne({ email });
+      if (!auth) {
+        return res.status(400).json({
+          message: "Tài khoản không tồn tại",
+        });
+      }
+      const isMatch = await bcryptjs.compare(password, auth.password);
+      if (!isMatch) {
+        return res.status(400).json({
+          message: "Không đúng mật khẩu",
+        });
+      }
+      const token = jwt.sign({ _id: user._id }, "123456", {
+        expiresIn: "1d",
+      });
+  
+      user.password = undefined;
+  
+      return res.status(200).json({
+        message: "Đăng nhập thành công",
+        accessToken: token,
+        user,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        message: error,
+      });
+    }
+  };
